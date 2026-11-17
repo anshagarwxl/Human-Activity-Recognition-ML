@@ -29,6 +29,7 @@ All results are on **9 subjects never seen during training**.
 - [Evaluation rules](#evaluation-rules)
 - [Limitations](#limitations)
 - [References](#references)
+- [License](#license)
 
 ## Problem
 
@@ -41,12 +42,15 @@ how much the windows just before and after help, since real activities last many
 ```
 Human-Activity-Recognition-ML/
 ├── README.md
+├── LICENSE                               # MIT (code); the data is CC BY 4.0
 ├── requirements.txt
 ├── data/
 │   ├── README.md                         # column description + optional raw datasets
 │   ├── train.csv                         # 7,352 windows, 21 subjects
 │   ├── test.csv                          # 2,947 windows, 9 held-out subjects
 │   └── external/                         # (git-ignored) raw UCI HAR + HAPT archives, optional
+├── scripts/
+│   └── download_data.py                  # fetches the raw archives into data/external/
 ├── notebooks/
 │   └── HAR_Classification_Project.ipynb  # the whole project, with saved outputs
 └── docs/
@@ -136,6 +140,12 @@ almost never confused; the dominant error for every model is **SITTING predicted
 | HMM Forward–Backward | 0.9701 / 0.9700 | 0.9728 / 0.9712 |
 | **HMM Viterbi** | **0.9701 / 0.9700** | **0.9760 / 0.9739** |
 
+**Extension (§10.9): soft emissions.** Feeding the HMM Logistic Regression's class probabilities (tempered,
+τ = 0.5 chosen on training subjects) instead of hard labels cuts the UCI test errors from **133 (LR) → 82 (hard
+Viterbi) → 50 (soft Viterbi)**, i.e. accuracy 0.9549 → 0.9722 → **0.9830**, and makes the real-time Forward filter
+almost as good as offline decoding (0.9718). These numbers come from a re-run in which the LR baseline is 0.9549
+rather than 0.9535 (platform numerical differences); see the run note in §10.9.
+
 <p align="center"><img src="docs/images/sequence_example.png" width="760" alt="Actual vs predicted activity sequence"></p>
 
 On UCI HAR, Viterbi fixes 67 of LR's 137 errors and adds 18, and the number of predicted activity changes falls
@@ -152,8 +162,15 @@ jupyter notebook notebooks/HAR_Classification_Project.ipynb
 ```
 
 - **Module 1, Review 2 and the Unit 5 extension** (§1–§5.9) run with `data/train.csv` and `data/test.csv` only.
-- **Module 2** (§6–§11) also needs the raw UCI HAR and HAPT archives in `data/external/`; see
-  [`data/README.md`](data/README.md). The saved outputs of these sections are already in the notebook.
+- **Module 2** (§6–§11) also needs the raw UCI HAR and HAPT archives in `data/external/`. Fetch them with
+
+  ```bash
+  python scripts/download_data.py            # both datasets (≈ 570 MB unpacked); --only uci or --only hapt for one
+  ```
+
+  If the download is blocked, download the zips manually from the UCI repository and run
+  `python scripts/download_data.py --from-zip uci <file.zip>` (or `hapt`). See [`data/README.md`](data/README.md).
+  The saved outputs of these sections are already in the notebook.
 - All randomness uses `RANDOM_STATE = 42`. The full notebook takes several minutes on a laptop CPU, mostly for
   cross-validation of the tree models and the HMM emission matrix.
 
@@ -171,7 +188,8 @@ jupyter notebook notebooks/HAR_Classification_Project.ipynb
 - Scripted laboratory protocol and a single phone position; the activity order would not hold in daily life.
 - Only 9 test subjects: differences of about 0.001 (3 windows) are within noise.
 - UCI HAR removed the transitions between activities; HAPT is used to validate on real transitions.
-- The HMM uses hard labels as observations and assumes geometric activity durations.
+- The main HMM uses hard labels as observations (the §10.9 extension uses probabilities) and assumes geometric
+  activity durations.
 - SITTING vs STANDING remains the hardest pair for every model.
 
 ## References
@@ -184,6 +202,12 @@ jupyter notebook notebooks/HAR_Classification_Project.ipynb
 4. L. R. Rabiner, "A tutorial on hidden Markov models and selected applications in speech recognition,"
    *Proc. IEEE*, vol. 77, no. 2, pp. 257–286, 1989.
 5. F. Pedregosa et al., "Scikit-learn: Machine learning in Python," *JMLR*, vol. 12, pp. 2825–2830, 2011.
+
+## License
+
+Code and notebook: [MIT](LICENSE). Data: the UCI HAR and HAPT datasets are licensed under
+[CC BY 4.0](https://creativecommons.org/licenses/by/4.0/) by their authors; see [`data/README.md`](data/README.md)
+for the citations.
 
 ---
 
