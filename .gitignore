@@ -1,2 +1,14 @@
+# OS / editor
 .DS_Store
+.vscode/
+.idea/
+
+# Jupyter / Python
 .ipynb_checkpoints/
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# Large raw datasets (downloaded separately, see data/README.md)
+data/external/
